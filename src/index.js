@@ -7,12 +7,6 @@ app.use(express.json());
 
 const custumers = [];
 
-/**
- * cpf - string
- * name - string
- * id -  uuid
- * statement - array
- */
 app.post("/account", (req, res) => {
     const {cpf, name} = req.body;
     const custumerAlreadyExists = custumers.some((custumer) => custumer.cpf === cpf);
@@ -30,7 +24,7 @@ app.post("/account", (req, res) => {
     return res.status(200).send();
 });
 
-app.get("/statement", (req, res) => {
+function verifyifAccountExistsCPF(req, res, next) {
     const { cpf } = req.headers;
 
     const custumer = custumers.find(custumer => custumer.cpf === cpf);
@@ -39,7 +33,30 @@ app.get("/statement", (req, res) => {
         return res.status(400).json({ error: "Cliente não encontrado"})
     }
 
+    req.custumer = custumer;
+
+    return next();
+}
+
+app.get("/statement", verifyifAccountExistsCPF, (req, res) => {
+    const {custumer } = req;
     return res.json(custumer.statement);
+});
+
+app.post("/deposit", verifyifAccountExistsCPF, (req, res) => {
+    const {description, amount} = req.body;
+    const {custumer } = req;
+    
+    const statementOperation = {
+        description,
+        amount,
+        created_at: new Date(),
+        type: 'credit'
+    }
+
+    custumer.statement.push(statementOperation);
+
+    return res.status(201).send();
 });
 
 app.listen(3000, () => {
