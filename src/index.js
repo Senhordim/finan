@@ -15,9 +15,14 @@ const custumers = [];
  */
 app.post("/account", (req, res) => {
     const {cpf, name} = req.body;
-    const id = uuid();
+    const custumerAlreadyExists = custumers.some((custumer) => custumer.cpf === cpf);
+
+    if(custumerAlreadyExists){
+        return res.status(400).json({message: "Usuário já existe"})
+    }
+
     custumers.push({
-        id,
+        id: uuid(),
         name,
         cpf,
         statement: []
