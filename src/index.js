@@ -30,6 +30,18 @@ app.post("/account", (req, res) => {
     return res.status(200).send();
 });
 
+app.get("/statement", (req, res) => {
+    const { cpf } = req.headers;
+
+    const custumer = custumers.find(custumer => custumer.cpf === cpf);
+
+    if(!custumer){
+        return res.status(400).json({ error: "Cliente não encontrado"})
+    }
+
+    return res.json(custumer.statement);
+});
+
 app.listen(3000, () => {
     console.log("is running!");
 });
