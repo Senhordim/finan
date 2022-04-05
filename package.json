@@ -1,0 +1,11 @@
+{
+  "name": "finan",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Diego Collares <diego.collares@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.3",
+    "uuid": "^8.3.2"
+  }
+}
