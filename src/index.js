@@ -7,24 +7,6 @@ app.use(express.json());
 
 const custumers = [];
 
-app.post("/account", (req, res) => {
-    const {cpf, name} = req.body;
-    const custumerAlreadyExists = custumers.some((custumer) => custumer.cpf === cpf);
-
-    if(custumerAlreadyExists){
-        return res.status(400).json({message: "Usuário já existe"})
-    }
-
-    custumers.push({
-        id: uuid(),
-        name,
-        cpf,
-        statement: []
-    });
-    return res.status(200).send();
-});
-
-
 function verifyifAccountExistsCPF(req, res, next) {
     const { cpf } = req.headers;
 
@@ -52,9 +34,63 @@ function getBalance(statement) {
     return balance;
 }
 
+app.post("/account", (req, res) => {
+    const {cpf, name} = req.body;
+    const custumerAlreadyExists = custumers.some((custumer) => custumer.cpf === cpf);
+
+    if(custumerAlreadyExists){
+        return res.status(400).json({message: "Usuário já existe"})
+    }
+
+    custumers.push({
+        id: uuid(),
+        name,
+        cpf,
+        statement: []
+    });
+    return res.status(200).send();
+});
+
+app.put("/account",verifyifAccountExistsCPF, (req, res) => {
+    const { name } = req.body;
+    const { custumer } = req;
+
+    custumer.name = name;
+
+    return res.status(201).send();
+
+});
+
+app.get("/account", verifyifAccountExistsCPF,  (req, res) =>{
+    const { custumer } = req;
+    return res.status(200).json({ 
+        name: custumer.name,
+        cpf: custumer.cpf
+    });
+});
+
+app.delete("/account", verifyifAccountExistsCPF,  (req, res) =>{
+    const { custumer } = req;
+    custumers.splice(custumer, 1);
+    return res.status(200).json(custumers);
+});
+
 app.get("/statement", verifyifAccountExistsCPF, (req, res) => {
     const {custumer } = req;
-    return res.json(custumer.statement);
+    const makeStatement = {
+        statement: custumer.statement,
+        balance: getBalance(custumer.statement),
+    }
+    return res.json(makeStatement);
+});
+
+app.get("/statement/data", verifyifAccountExistsCPF, (req, res) => {
+    const { custumer } = req;
+    const { date } = req;
+    const dateFormat = new Date(date + " 00:00");
+
+    const statement = custumer.statement.filter((statement ) => statement.created_at.toDateString() === new Date(dateFormat).toDateString());
+    return res.json(statement);
 });
 
 app.post("/deposit", verifyifAccountExistsCPF, (req, res) => {
